@@ -142,7 +142,7 @@ if user_menu == 'Data Analysis':
             st.text("Value of Target/Class")
             st.write(df.iloc[:,1].value_counts())
 
-        if st.button("Dara types"):
+        if st.button("Data types"):
             
             st.write(df.dtypes)
 
