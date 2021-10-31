@@ -1,6 +1,6 @@
 import pandas as pd
 
-df = pd.read_csv('athlete_events.csv')
+df = pd.read_csv('athlete_events.csv.zip')
 region_df = pd.read_csv('noc_regions.csv')
 
 def preprocess(df,region_df):
