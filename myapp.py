@@ -5,9 +5,7 @@ import preprocessor,helper
 import plotly.express as px
 import matplotlib.pyplot as plt
 import seaborn as sns
-from pandas_profiling import ProfileReport
-from streamlit_pandas_profiling import st_profile_report
-
+import os
 
 df = pd.read_csv('athlete_events.csv')
 region_df = pd.read_csv('noc_regions.csv')
@@ -52,30 +50,6 @@ if user_menu == 'Overall Data Analysis':
     athletes = df['Name'].unique().shape[0]
     nations = df['region'].unique().shape[0]
 
-
-    #st.title("Top statistics")
-    #col1,col2,col3 = st.beta_columns(3)
-    #with col1:
-        #st.header("Editions")
-        #st.title(editions)
-    #with col1:
-        #st.header("Hosts")
-        #st.title(cities)
-    #with col1:
-        #st.header("Sports")
-        #st.title(sports)
-
-    #col1,col2,col3 = st.beta_columns(3)
-    #with col1:
-        #st.header("Events")
-        #st.title(events)
-    #with col1:
-        #st.header("Nations")
-        #st.title(nations)
-    #with col1:
-        #st.header("Athletes")
-        #st.title(athletes)
-
     nations_over_time = helper.data_over_time(df,'region')
     fig = px.line(nations_over_time, x="Edition",y="region")
     st.title("Participating Nations over the years")
@@ -108,15 +82,11 @@ if user_menu == 'Overall Data Analysis':
 
 if user_menu == 'Country-wise Analysis':
 
-    
-
     st.sidebar.title('Country-wise Analysis')
 
     country_list = df['region'].dropna().unique().tolist()
     country_list.sort()
     selected_country = st.sidebar.selectbox('Select a Country',country_list)
-
-    #selected_country = st.sidebar.selectbox('Select a Country',country_list)
 
     country_df = helper.yearwise_medal_tally(df,selected_country)
     fig = px.line(country_df, x="Year", y="Medal")
@@ -134,49 +104,67 @@ if user_menu == 'Country-wise Analysis':
     st.table(top10_df)
 
 if user_menu == 'Data Analysis':
-    #st.sidebar.header("Data Analysis")
-    #upload = st.file_uploader("Upload Your Dataset(In CSV Format)")
-    #if upload is not None:
-        #data=pd.read_csv(upload)
+    st.sidebar.header("Data Analysis")
+    def file_selector(folder_path='.'):
+        filenames = os.listdir(folder_path)
+        selected_filename = st.selectbox("Select a file",filenames)
+        return os.path.join(folder_path,selected_filename)
 
-# Upload CSV data
- with st.sidebar.header('Uploaded Data Analysis'):
-    uploaded_file = st.sidebar.file_uploader("Upload your input CSV file", type=["csv"])
-  
+    filename = file_selector()
+    st.info("You selected {}".format(filename))
 
-
-# Pandas Profiling Report
-
-if uploaded_file is not None:
-    @st.cache
-    def load_csv():
-        csv = pd.read_csv(uploaded_file)
-        return csv
-    df = load_csv()
-    pr = ProfileReport(df, explorative=True)
-    st.header('**Input DataFrame**')
-    st.write(df)
-    st.write('---')
-    st.header('**Pandas Profiling Report**')
-    st_profile_report(pr)
-else:
-    st.info('Awaiting for CSV file to be uploaded.')
-    if st.button('Press to use Example Dataset'):
-        # Example data
-        @st.cache
-        def load_data():
-            a = pd.DataFrame(
-                np.random.rand(100, 5),
-                columns=['a', 'b', 'c', 'd', 'e']
-            )
-            return a
-        df = load_data()
-        pr = ProfileReport(df, explorative=True)
-        st.header('**Input DataFrame**')
-        st.write(df)
-        st.write('---')
-        st.header('**Pandas Profiling Report**')
-        st_profile_report(pr)
+    df = pd.read_csv(filename)
 
 
+    if st.checkbox("Show Dataset"):
+        
+        if st.button("Column names"):
+            st.write(df.columns)
+        if st.checkbox("shape of dataset"):
+            data_dim = st.radio("show dimensions by",("Rows","Columns"))
+            if data_dim == 'Row':
+                st.text("number of Rows")
+                st.write(df.shape[0])
+            elif data_dim == 'Columns':
+                st.text("Number of Columns")
+                st.write(df.shape[1])
+            else:
+                st.write(df.shape)
 
+        if st.checkbox("Select Columns to show"):
+            all_columns = df.columns.tolist()
+            selected_columns = st.multiselect("Select",all_columns)
+            new_df = df[selected_columns]
+            st.dataframe(new_df)
+
+
+        if st.button("Value Counts"):
+            st.text("Value of Target/Class")
+            st.write(df.iloc[:,1].value_counts())
+
+        if st.button("Dara types"):
+            
+            st.write(df.dtypes)
+
+        if st.checkbox("Summary"):
+            st.write(df.describe().T)
+
+            
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+
+        st.subheader("Data visualization")
+        if st.checkbox("Correlation Plot[Seaborn]"):
+		       st.write(sns.heatmap(df.corr(),annot=True))
+		       st.pyplot()
+
+        if st.checkbox("Pie Plot"):
+		       all_columns_names = df.columns.tolist()
+		       if st.button("Generate Pie Plot"):
+			        st.success("Generating A Pie Plot")
+			        st.write(df.iloc[:,-1].value_counts().plot.pie(autopct="%1.1f%%"))
+			        st.pyplot()
+
+        
+            
+            
+    
