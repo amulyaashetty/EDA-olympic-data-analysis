@@ -142,9 +142,7 @@ if user_menu == 'Data Analysis':
             st.text("Value of Target/Class")
             st.write(df.iloc[:,1].value_counts())
 
-        if st.button("Data types"):
-            
-            st.write(df.dtypes)
+        
 
         if st.checkbox("Summary"):
             st.write(df.describe().T)
